@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    function eventWindowLoaded() {
+        var photo = new Image;
+        photo.setAttribute('src', 'src/butterfly.jpg');
+        photo.onload = eventPhotoLoaded;
+        var windowWidth=500,//开始复制源图像的矩形宽度
+                windowHeight=500,//开始复制原图像矩形的高度
+                windowX=0,//开始复制原图像的矩形的左上角x坐标
+                windowY = 0,
+                currentScale = 1,
+                minScale = .2,
+                maxScale = 3,
+                scaleIncrement=.1;
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+
+        
+        function drawScreen() {
+            //绘制背景已显示出画布边缘
+            context.fillStyle='#ffffff';
+            context.fillRect(0,0,500,500);
+            context.drawImage(photo,windowX,windowY,windowWidth*currentScale,windowHeight*currentScale,0,0,
+                    windowWidth,windowHeight);
+        }
+
+        document.addEventListener('keydown',function (e) {
+            e = e? e:window.event;
+            console.log(e.keyCode);
+            switch (e.keyCode)
+            {
+                case 38:
+                    //上
+                    windowY-=10;
+                    if(windowY<0){
+                        windowY=0;
+                    }
+                    break;
+                case 40:
+                    //下
+                    windowY +=10;
+                    if(windowY>photo.height-windowHeight){
+                        windowY = photo.height-windowHeight;
+                    }
+                    break;
+                case 37:
+                    //左
+                    windowX+=10;
+                    if(windowX>photo.width-windowWidth){
+                        windowX = photo.width-windowWidth;
+                    }
+                    break;
+                case 39:
+                    //右
+                    windowX-=10;
+                    if(windowX<0){
+                        windowX=0;
+                    }
+                    break;
+                case 187:
+                    //+
+                    currentScale -= scaleIncrement;
+                    if(currentScale<minScale){
+                        currentScale = minScale;
+                    }
+                    break;
+                case 189:
+                    currentScale += scaleIncrement;
+                    if(currentScale>maxScale){
+                        currentScale = maxScale;
+                    }
+                    break;
+            }
+        },false);
+        function eventPhotoLoaded() {
+            setInterval(drawScreen,100);
+        }
+    }
+
+</script>
+<body>
+<div align="center">
+    <canvas id="canvas" width="500" height="500"></canvas>
+</div>
+</body>
+</html>

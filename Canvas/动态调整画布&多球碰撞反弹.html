@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>多球碰撞反弹和动态调整画布</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    function eventWindowLoaded(){
+        canvasApp();
+    }
+    function canvasApp(){
+        //canvas对象
+        var canvas = document.getElementById('canvasOne');
+        var context = canvas.getContext('2d');
+        //控件
+        var canvasWidth = document.getElementById('canvasWidth');
+        var canvasHeight = document.getElementById('canvasHeight');
+        canvasWidth.addEventListener('change',canvasWidthchanged,false);
+        canvasHeight.addEventListener('change',canvasHeightchanged,false);
+
+        var numBalls=500,//球的个数
+            maxsize = 8,//球的最大直径
+            minsize= 5,//球的最小直径
+            maxspeed=maxsize+ 5,//球的最大速度
+            balls=[],//存储球的数组
+            tempball,//球的临时变量
+            tempX,//球的x坐标
+            tempY,//球的y坐标
+            tempspeed,//球的速度
+            tempangle,//球运动角度
+            tempradius,//球的半径
+            tempradians,//球的角度（弧度）
+            tempxunits,//x增量
+            tempyunits;//y增量
+        for(var i=0;i<numBalls;i++)
+        {
+            tempradius = Math.floor(Math.random()*maxsize+minsize);
+            tempX = Math.floor(Math.random()*canvas.width);
+            tempY = Math.floor(Math.random()*canvas.height);
+            tempspeed = maxspeed - tempradius;
+            tempangle = Math.floor(Math.random()*360);
+            tempradians = tempangle*Math.PI/180;
+            tempxunits = Math.cos(tempradians)*tempspeed;
+            tempyunits = Math.sin(tempradians)*tempspeed;
+
+            tempball={x:tempX,y:tempY,radius:tempradius,speed:tempspeed,
+                angle:tempangle,xunits:tempxunits,yunits:tempyunits};
+            balls.push(tempball);
+        }
+
+        ///绘图函数
+        function drawScreen(){
+            context.fillStyle='#EEEEEE';
+            context.fillRect(0,0,canvas.width,canvas.height);
+            //边框
+            context.strokeStyle='black';
+            context.strokeRect(1,1,canvas.width-2,canvas.height-2);
+
+            //放置球
+            context.fillStyle='black';
+            var ball,length = balls.length;
+            for(var i=0;i<length;i++){
+                ball = balls[i];
+                ball.x +=ball.xunits;
+                ball.y +=ball.yunits;
+                context.beginPath();
+                context.arc(ball.x,ball.y,ball.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+
+                if(ball.x>canvas.width||ball.x<0){
+                    ball.angle = 180-ball.angle;
+                    updateBall(ball);
+                }else{
+                    ball.angle = 360-ball.angle;
+                    updateBall(ball);
+                }
+            }
+        }
+        function updateBall(ball){
+            ball.radians = ball.angle*Math.PI/180;
+            ball.xunits = Math.cos(ball.radians)*ball.speed;
+            ball.yunits = Math.sin(ball.radians)*ball.speed;
+        }
+
+        setInterval(drawScreen,33);
+        function canvasHeightchanged(e){
+            var target = e.target;
+            canvas.height=target.value;
+            drawScreen();
+        }
+        function canvasWidthchanged(e){
+            var target = e.target;
+            canvas.width=target.value;
+            drawScreen();
+        }
+    }
+</script>
+<body style="position: relative">
+<div align="center">
+    <canvas id="canvasOne" width="500" height="500px">
+        your brower does not support canvas
+    </canvas>
+    <form>
+        Canvas Width:<input type="range" id="canvasWidth" min="0" max="1000" step="1" value="500">
+        <br>
+        Canvas Height:<input type="range" id="canvasHeight" min="0" max="1000" step="1" value="500">
+    </form>
+</div>
+</body>
+</html>

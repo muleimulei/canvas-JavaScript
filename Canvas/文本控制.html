@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Arranger</title>
+</head>
+<script>
+    window.addEventListener('load',eventLoaded,false);
+    function eventLoaded(){
+        canvasApp();
+    }
+    function  canvasApp() {
+        var message='your text';
+        var fillOrStroke='fill';
+        var fontSize='50';
+        var fontFace='serif';
+        var fontWeight='normal';
+        var fontStyle='normal';
+        var textColor='#ff0000';
+        var textBaseline='middle';
+        var textAlign='center';
+        var textAlpha=1;//文本透明度
+
+        var shadowX = 1;
+        var shadowY = 1;
+        var shadowBlur = 1;
+        var shadowColor = '#707070';
+
+        var fillType = 'colorFill';
+        var textFillColor1='#ff0000';
+        var textFillColor2 = '#000000';
+
+        var pattern = new Image();
+        pattern.src='texture.jpg';
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        var formElement = document.getElementById('textBox');
+        formElement.addEventListener('keyup',textBoxChanged,false);
+
+        formElement = document.getElementById('fillOrStroke');
+        formElement.addEventListener('change',fillOrStrokeChanged,false);
+
+        formElement = document.getElementById('fontStyle');
+        formElement.addEventListener('change',fontStyleChanged,false);
+
+        formElement = document.getElementById('fontWeight');
+        formElement.addEventListener('change',fontWeightChanged,false);
+
+        formElement = document.getElementById('textFont');
+        formElement.addEventListener('change',textFontChanged,false);
+
+        formElement = document.getElementById('textSize');
+        formElement.addEventListener('change',textSizeChanged,false);
+
+        formElement = document.getElementById('textColor');
+        formElement.addEventListener('change',textColorChanged,false);
+
+        formElement = document.getElementById('textBaseline');
+        formElement.addEventListener('change',textBaseLineChanged,false);
+
+        formElement = document.getElementById('textAlign');
+        formElement.addEventListener('change',textAlignChanged,false);
+
+        formElement = document.getElementById('textAlpha');
+        formElement.addEventListener('change',textAlphaChanged,false);
+
+
+        formElement = document.getElementById('shadowX');
+        formElement.addEventListener('change',shadowXChanged,false);
+
+        formElement = document.getElementById('shadowY');
+        formElement.addEventListener('change',shadowYChanged,false);
+
+        formElement = document.getElementById('shadowBlur');
+        formElement.addEventListener('change',shadowBlurChanged,false);
+
+        formElement = document.getElementById('textAlpha');
+        formElement.addEventListener('change',shadowColorChanged,false);
+
+        formElement = document.getElementById('fillType');
+        formElement.addEventListener('change',fillTypeChanged,false);
+
+        formElement = document.getElementById('textFillColor1');
+        formElement.addEventListener('change',textFillColor1Changed,false);
+
+        formElement = document.getElementById('textFillColor2');
+        formElement.addEventListener('change',textFillColor2Changed,false);
+
+        formElement = document.addEventListener('click',createImageData,false);
+
+        setInterval(drawScreen,33);
+
+        function drawScreen(){
+            //清除边框阴影
+            context.globalAlpha=1;
+            context.shadowColor = 'black';
+            context.shadowOffsetX = 0;
+            context.shadowOffsetY = 0;
+            context.shadowBlur = 0;
+            //背景
+            context.fillStyle='#ffffaa';
+            context.fillRect(0,0,theCanvas.width,theCanvas.height);
+            //边框
+            context.strokeStyle="black";
+            context.strokeRect(0,0,theCanvas.width,theCanvas.height);
+
+            //text
+            context.font=fontWeight+' '+fontStyle+' '+fontSize+'px'+" "+fontFace;
+            context.baseline = textBaseline;
+            context.textAlign = textAlign;
+            context.globalAlpha=textAlpha;
+
+            context.shadowColor = shadowColor;
+            context.shadowOffsetX = shadowX;
+            context.shadowOffsetY = shadowY;
+            context.shadowBlur = shadowBlur;
+
+            var metrics = context.measureText(message);//可以返回文本宽度
+            var textWidth = metrics.width;
+            var xPosition = (theCanvas.width/2);
+            var yPosition = theCanvas.height/2;
+
+            var tempColor;
+            switch (fillType){
+                case "colorFill":
+                    tempColor = textFillColor1;
+                    break;
+                case 'linearColor':
+                    var gradient = context.createLinearGradient(xPosition-textWidth/2,yPosition,xPosition+textWidth/2,yPosition);
+                    gradient.addColorStop(0,textFillColor1);
+                    gradient.addColorStop(.5,textFillColor2);
+                    tempColor = gradient;
+                    break;
+                case 'radialGradient':
+                    var gradient1 = context.createRadialGradient(xPosition,yPosition,1,xPosition,yPosition,2);
+                    gradient1.addColorStop(0,textFillColor1);
+                    gradient1.addColorStop(0.6,textFillColor2);
+                    tempColor = gradient1;
+                    break;
+                case 'pattern':
+                    tempColor = context.createPattern(pattern,"repeat");
+                    break;
+                default:
+                    tempColor = textFillColor1;
+            }
+
+            switch (fillOrStroke){
+                case 'fill':
+                    context.fillStyle=tempColor;
+                    context.fillText(message,xPosition,yPosition);
+                    break;
+                case 'stroke':
+                    context.strokeStyle=tempColor;
+                    context.strokeText(message,xPosition,yPosition);
+                    break;
+                case 'both':
+                    context.fillStyle=tempColor;
+                    context.fillText(message,xPosition,yPosition);
+                    context.strokeStyle='black';
+                    context.strokeText(message,xPosition,yPosition);
+                    break;
+            }
+        }
+
+
+        function  textBoxChanged(e) {
+            var target = e.target;
+            message = target.value;
+            drawScreen();
+        }
+
+        function  fillOrStrokeChanged(e) {
+            var target = e.target;
+            fillOrStroke = target.value;
+            drawScreen();
+        }
+
+        function  textSizeChanged(e) {
+            var target = e.target;
+            fontSize = target.value;
+            drawScreen();
+        }
+        function  fontWeightChanged(e) {
+            var target = e.target;
+            fontWeight = target.value;
+            drawScreen();
+        }
+
+        function  fontStyleChanged(e) {
+            var target = e.target;
+            fontStyle = target.value;
+            drawScreen();
+        }
+
+        function  textFontChanged() {
+            var target = e.target;
+            fontFace = target.value;
+            drawScreen();
+        }
+
+        function  textColorChanged(e) {
+            var target = e.target;
+            textColor = target.value;
+            drawScreen();
+        }
+
+        function textBaseLineChanged(e) {
+            var target = e.target;
+            textBaseline = target.value;
+            drawScreen();
+        }
+
+        function textAlignChanged(e) {
+            var target = e.target;
+            textAlign = target.value;
+            drawScreen();
+        }
+
+        function textAlphaChanged(e) {
+            var target = e.target;
+            textAlpha = target.value;
+            drawScreen();
+        }
+
+        function shadowXChanged(e) {
+            var target = e.target;
+            shadowX = target.value;
+            drawScreen();
+        }
+
+        function shadowYChanged(e) {
+            var target = e.target;
+            shadowY = target.value;
+            drawScreen();
+        }
+
+        function shadowBlurChanged(e) {
+            var target = e.target;
+            shadowBlur = target.value;
+            drawScreen();
+        }
+
+        function shadowColorChanged(e) {
+            var target = e.target;
+            shadowColor = target.value;
+            drawScreen();
+        }
+
+        function fillTypeChanged(e) {
+            var target = e.target;
+            fillType = target.value;
+            drawScreen();
+        }
+
+        function textFillColor2Changed(e) {
+            var target = e.target;
+            textFillColor1 = target.value;
+            drawScreen();
+        }
+
+        function textFillColor1Changed(e) {
+            var target = e.target;
+            textFillColor2 = target.value;
+            drawScreen();
+        }
+
+        function createImageData(e) {
+            var imageDataDisplay = document.getElementById('imageDataDisplay');
+            window.open(theCanvas.toDataURL(),'canvasImage','left=0,top=0,width='+theCanvas.width+",height="+theCanvas.height
+            +",toolbar=0,resizable=0");
+        }
+    }
+
+</script>
+<body style="position: relative;">
+    <div id="div" style="float: left;width: 100%;padding-left: 10%;padding-right: 10%">
+        <canvas id="canvasOne" width="500" height="500" style="float: left"></canvas>
+        <form style="float: left;margin-left: 5%">
+            Text : <input type="text" placeholder="your text" id="textBox">
+            <br>
+            Fill or Stroke :
+            <select id="fillOrStroke">
+                <option value="fill">fill</option>
+                <option value="stroke">stroke</option>
+                <option value="both">both</option>
+            </select>
+            <br>
+            text Font :
+            <select id="fontStyle">
+                <option value="normal">normal</option>
+                <option value="italic">italic</option>
+                <option value="oblique">oblique</option>
+            </select>
+            <br>
+            text Weight :
+            <select id="fontWeight">
+                <option value="normal">normal</option>
+                <option value="bold">bold</option>
+                <option value="bolder">bolder</option>
+                <option value="lighter">lighter</option>
+            </select>
+            <br>
+            text Style :
+            <select id="textFont">
+                <option value="serif">serif</option>
+                <option value="sans-serif">sans-serif</option>
+                <option value="fantasy">fantasy</option>
+                <option value="monospace">monospace</option>
+            </select>
+            <br>
+            text Color:
+            <input type="color" id="textColor">
+            <br>
+            text Baseline:
+            <select id="textBaseline">
+                <option value="middle">middle</option>
+                <option value="top">top</option>
+                <option value="hanging">hanging</option>
+                <option value="alphabetic">alphabetic</option>
+                <option value="ideographic">ideographic</option>
+                <option value="bottom">bottom</option>
+            </select>
+            <br>
+            text Align:
+            <select id="textAlign">
+                <option value="center">center</option><!--文本绝对水平居中 -->
+                <option value="start">start</option><!--紧跟在文本y轴位置显示-->
+                <option value="end">end</option><!--所有文本都在y轴位置以前显示-->
+                <option value="left">left</option><!--文本最左端从y轴位置开始-->
+                <option value="right">right</option><!--文本最右端从文本y轴位置开始 -->
+            </select>
+            <br>
+            text Alpha:
+            <input type="range" id="textAlpha" min="0.0" max="1.0" step="0.01" value="1.0">
+            <br>
+            text Size
+            <input type="range" min="10" max="100" step="1" value="50" id="textSize">
+            <br>
+            Shadow X:
+            <input type="range" id="shadowX" min="-100" max="100" step="1" value="1">
+            <br>
+            shadow Y:
+            <input type="range" id="shadowY" min="-100" max="100" step="1" value="1">
+            <br>
+            shadow Blur:
+            <input type="range" id="shadowBlur" min="1" max="100" step="1" value="1">
+            <br>
+            shadow Color:
+            <input type="color" id="shadowColor" value="#707070">
+            <br>
+            fill Type:
+            <select id="fillType">
+                <option value="colorFill">colorFill</option>
+                <option value="linearGradient">linearGradient</option>
+                <option value="radialGradient">radialGradient</option>
+                <option value="pattern">pattern</option>
+            </select>
+            <br>
+            text Color1:
+            <input type="color" id="textFillColor1" value="ff0000">
+            <br>
+            text Color2:
+            <input type="color" id="textFillColor2" value="ff0000">
+            <br>
+            <input type="button" id="createImageData" value="craeteImageData">
+            <br>
+            <textarea id="imageDataDisplay" cols="30" rows="10"></textarea>
+        </form>
+    </div>
+</body>
+</html>

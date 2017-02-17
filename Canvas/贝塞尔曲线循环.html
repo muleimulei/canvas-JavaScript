@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>贝塞尔曲线循环</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+    function canvasApp() {
+        var p0={x:150,y:440},
+            p1={x:450,y:10},
+            p2={x:50,y:10},
+            p3={x:325,y:450};
+        var player={x:0,y:0,speed:0.01,t:0};
+        var points=[],
+            canvas = document.getElementById('canvasOne'),
+            context = canvas.getContext('2d');
+        setInterval(drawScreen,33);
+        function drawScreen() {
+            context.fillStyle='#EEEEEE';
+            context.fillRect(0,0,canvas.width,canvas.height);
+            //边框
+            context.strokeStyle='black';
+            context.strokeRect(1,1,canvas.width-2,canvas.height-2);
+
+            var t = player.t;
+            var cx = 3*(p1.x-p0.x);
+            var bx = 3*(p2.x-p1.x)-cx;
+            var ax = p3.x-p0.x-cx-bx;
+
+            var cy = 3*(p1.y-p0.y);
+            var by = 3*(p2.y-p1.y)-cy;
+            var ay = p3.y-p0.y-cy-by;
+
+            var xt = ax*(t*t*t)+bx*(t*t)+cx*t+p0.x;
+            var yt = ay*(t*t*t)+by*(t*t)+cy*t+p0.y;
+
+            player.t+=player.speed;
+
+            if (player.t>1){
+                player.t=1;
+            }
+
+            //绘制点
+            context.font='10px sans';
+            context.fillStyle='#FF0000';
+            context.beginPath();
+            context.arc(p0.x,p0.y,8,0,Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            context.fillStyle='#FFFFFF';
+            context.fillText('0',p0.x-2,p0.y+2);
+
+            context.fillStyle='#FF0000';
+            context.beginPath();
+            context.arc(p1.x,p1.y,8,0,Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            context.fillStyle='#FFFFFF';
+            context.fillText('1',p1.x-2,p1.y+2);
+
+            context.fillStyle='#FF0000';
+            context.beginPath();
+            context.arc(p2.x,p2.y,8,0,Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            context.fillStyle='#FFFFFF';
+            context.fillText('2',p2.x-2,p2.y+2);
+
+            context.fillStyle='#FF0000';
+            context.beginPath();
+            context.arc(p3.x,p3.y,8,0,Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            context.fillStyle='#FFFFFF';
+            context.fillText('3',p3.x-2,p3.y+2);
+
+            points.push({x:xt,y:yt});
+            var len = points.length;
+            for (var i=0;i<len;i++){
+                context.fillStyle='gray';
+                context.beginPath();
+                context.arc(points[i].x,points[i].y,1,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+            }
+
+            context.strokeStyle='blue';
+            context.beginPath();
+            context.arc(xt,yt,10,0,Math.PI*2,false);
+            context.stroke();
+            context.closePath();
+
+        }
+    }
+</script>
+<body>
+<div style="position: absolute;top :50px;left: 50px;">
+    <canvas id="canvasOne" width="500" height="500">
+        your brower does not support HTML5 canvas
+    </canvas>
+</div>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+    function canvasApp() {
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+
+        const STATE_INIT = 10;
+        const STATE_LOADING = 20;
+        const STATE_RESET = 30;
+        const STATE_PLAYING = 40;
+        var appState = STATE_INIT;
+
+        var loadCount = 0;
+        var itemsToLoad = 0;
+        var alienImage = new Image;
+        var missileImage = new Image;
+        var playerImage = new Image;
+
+        const SOUND_EXPLODE = "src/explode1";
+        const SOUND_SHOOT = "src/shoot1";
+//        const MAX_SOUNDS = 6;
+        var  soundPool = [];
+
+        //爆咋声音
+        var explodeSound;
+        var explodeSound2;
+        var explodeSound3;
+
+        //设计声音
+        var shootSound;
+        var shootSound2;
+        var shootSound3;
+
+        var audioType;
+
+        var mouseX;
+        var mouseY;
+
+        var player = {x:250,y:475};
+        var aliens = [];
+        var missiles = [];
+
+        const ALIEN_START_X=25;
+        const ALIEN_START_Y=25;
+        const ALIEN_ROWS=5;
+        const ALIEN_COLS = 8;
+        const ALIEN_SPACING=40;
+
+        canvas.addEventListener('mousemove',eventMouseMove,false);
+        canvas.addEventListener('mouseup',eventMouseUp,false);
+        setInterval(run,33);
+
+        function itemLoaded(e) {
+            loadCount++;
+            if(loadCount>=itemsToLoad){
+                shootSound.removeEventListener('canplaythrough',itemLoaded,false);
+                shootSound2.removeEventListener('canplaythrough',itemLoaded,false);
+                shootSound3.removeEventListener('canplaythrough',itemLoaded,false);
+
+                explodeSound.removeEventListener('canplaythrough',itemLoaded,false);
+                explodeSound2.removeEventListener('canplaythrough',itemLoaded,false);
+                explodeSound3.removeEventListener('canplaythrough',itemLoaded,false);
+
+                soundPool.push({name:"src/explode1",element:explodeSound,played:false});
+                soundPool.push({name:"src/explode1",element:explodeSound2,played:false});
+                soundPool.push({name:"src/explode1",element:explodeSound3,played:false});
+
+                soundPool.push({name:"src/shoot1",element:shootSound,played:false});
+                soundPool.push({name:"src/shoot1",element:shootSound2,played:false});
+                soundPool.push({name:"src/shoot1",element:shootSound3,played:false});
+
+                appState = STATE_RESET;
+            }
+        }
+
+        function initApp() {
+            loadCount=0;
+            itemsToLoad=9;
+
+            explodeSound = document.createElement('audio');
+            audioType = supportedVideoFormat(explodeSound);
+            explodeSound.setAttribute('src','src/explode1.'+audioType);
+            explodeSound.addEventListener('canplaythrough',itemLoaded,false);
+
+            explodeSound2 = document.createElement('audio');
+            explodeSound2.setAttribute('src','src/explode1.'+audioType);
+            explodeSound2.addEventListener('canplaythrough',itemLoaded,false);
+
+            explodeSound3 = document.createElement('audio');
+            explodeSound3.setAttribute('src','src/explode1.'+audioType);
+            explodeSound3.addEventListener('canplaythrough',itemLoaded,false);
+
+
+            shootSound = document.createElement('audio');
+            shootSound.setAttribute('src','src/shoot1.'+audioType);
+            shootSound.addEventListener('canplaythrough',itemLoaded,false);
+
+            shootSound2 = document.createElement('audio');
+            shootSound2.setAttribute('src','src/shoot1.'+audioType);
+            shootSound2.addEventListener('canplaythrough',itemLoaded,false);
+
+            shootSound3 = document.createElement('audio');
+            shootSound3.setAttribute('src','src/shoot1.'+audioType);
+            shootSound3.addEventListener('canplaythrough',itemLoaded,false);
+
+            alienImage.onload = itemLoaded;
+            alienImage.src='src/alien.png';
+
+            playerImage.onload = itemLoaded;
+            playerImage.src='src/player.png';
+
+            missileImage.onload=itemLoaded;
+            missileImage.src='src/missile.png';
+
+            appState = STATE_LOADING;
+
+        }
+        function startLevel() {
+            for(var r=0;r<ALIEN_ROWS;r++){
+                for(var c=0;c<ALIEN_COLS;c++){
+                    aliens.push({
+                        speed:2,x:ALIEN_START_X+c*ALIEN_SPACING,y:ALIEN_START_Y+r*ALIEN_SPACING,width:alienImage.width,
+                        height:alienImage.height
+                    });
+                }
+            }
+        }
+        function resetApp() {
+            playSound(SOUND_EXPLODE,0);
+            playSound(SOUND_SHOOT,0);
+            startLevel();
+            appState=STATE_PLAYING;
+        }
+        function drawScreen() {
+            //移动导弹
+            for(var i=missiles.length-1;i>=0;i--){
+                missiles[i].y -= missiles[i].speed;
+                if(missiles[i].y<-missiles[i].height){
+                    missiles.splice(i,1);
+                }
+            }
+
+            //移动外星人
+            for(var j=aliens.length-1;j>=0;j--){
+                aliens[j].x +=aliens[j].speed;
+                if(aliens[j].x>(canvas.width-aliens[j].width)||aliens[j].x<0){
+                    aliens[j].speed *=-1;
+                    aliens[j].y+=20;
+                }
+
+                if(aliens[j].y>canvas.height){
+                    aliens.splice(j,1);
+                }
+            }
+
+            //碰撞检测
+
+            missile:for(var k = missiles.length-1;k>=0;k--){
+                var tempMissile = missiles[k];
+                for(var g=aliens.length-1;g>=0;g--){
+                    var tempAlien = aliens[g];
+                    if(hitTest(tempAlien,tempMissile)){
+                        playSound(SOUND_EXPLODE,.5);
+                        missiles.splice(k,1);
+                        aliens.splice(g,1);
+                        break missile;
+                    }
+                }
+                if(aliens.length<0){
+                    appState = STATE_RESET;
+                }
+            }
+
+            //填充背景
+            context.fillStyle='black';
+            context.fillRect(0,0,canvas.width,canvas.height);
+
+            //边框
+            context.strokeStyle='#eeeeee';
+            context.strokeRect(5,5,canvas.width-10,canvas.height-10);
+
+            //绘制玩家
+            context.drawImage(playerImage,player.x,player.y);
+
+            //绘制导弹
+            for(var l=missiles.length-1;l>=0;l--){
+                context.drawImage(missileImage,missiles[l].x,missiles[l].y);
+            }
+            //绘制外星人
+            for(var f=aliens.length-1;f>=0;f--){
+                context.drawImage(alienImage,aliens[f].x,aliens[f].y);
+            }
+
+        }
+
+        function hitTest(image1,image2) {
+            var r1Left = image1.x;
+            var r1Top = image1.y;
+            var r1right = image1.x+image1.width;
+            var r1bottom = image1.y+image1.height;
+
+            var r2Left = image2.x;
+            var r2Top = image2.y;
+            var r2right = image2.x+image2.width;
+            var r2bottom = image2.y+image2.height;
+
+            if((r1Left>r2right)||(r1right<r2Left)||(r1bottom<r2Top)||(r1Top>r2bottom)){
+                return false;
+            }else{
+                return true;
+            }
+
+
+        }
+        function eventMouseMove(e) {
+            if(e.layerX||e.layerX==0){
+                mouseX = e.layerX;
+                mouseY = e.layerY;
+            }else if(e.offsetX||e.offsetY==0){
+                mouseY = e.offsetY;
+                mouseX = e.offsetX;
+            }
+
+            player.x = mouseX;
+            player.y = mouseY;
+        }
+
+        function eventMouseUp(e) {
+            missiles.push({
+                speed:5,x:player.x+.5*playerImage.width,y:player.y-missileImage.height,width:missileImage.width,
+                height:missileImage.height
+            });
+            playSound(SOUND_SHOOT,.5);
+        }
+        function playSound(sound,volume) {
+            var soundFound = false;
+            var soundIndex = 0;
+            var tempSound;
+            if(soundPool.length>0){
+                while(!soundFound&&soundIndex<soundPool.length){
+                    var tSound = soundPool[soundIndex];
+                    if((tSound.element.ended||tSound.played)&&tSound.name==sound){
+                        soundFound=true;
+                        tSound=true;
+                    }else{
+                        soundIndex++;
+                    }
+                }
+            }
+            if(soundFound){
+                tempSound = soundPool[soundIndex].element;
+                tempSound.volume=volume;
+                tempSound.play();
+            }else{
+                tempSound = document.createElement('audio');
+                tempSound.setAttribute('src',sound+'.'+audioType);
+                tempSound.volume = volume;
+                tempSound.play();
+                soundPool.push({
+                    name:sound,element:tempSound,type:audioType,played:true
+                });
+            }
+        }
+
+        function run() {
+            switch (appState){
+                case STATE_INIT:
+                    initApp();
+                    break;
+                case STATE_LOADING:
+                    //等待回调
+                    break;
+                case STATE_RESET:
+                    resetApp();
+                    break;
+                case STATE_PLAYING:
+                    drawScreen();
+                    break;
+            }
+        }
+
+        function supportedVideoFormat(video){
+            var returnExt = '';
+            if(video.canPlayType('audio/ogg')=='probably'||
+                    video.canPlayType('audio/ogg')=='maybe'){
+                returnExt='ogg';
+            }else if(video.canPlayType('audio/mp3')=='probably'||
+                    video.canPlayType('audio/mp3')=='maybe'){
+                returnExt='mp3';
+            }else if (video.canPlayType('audio/wav')=='probably'||
+                    video.canPlayType('audio/wav')=='maybe'){
+                returnExt='wav';
+            }
+            return returnExt;
+        }
+    }
+</script>
+<body>
+<div align="center">
+    <canvas id="canvas" width="500" height="500"></canvas>
+</div>
+</body>
+</html>

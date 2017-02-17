@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Player</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    var loadCount=0,
+            itemsToLoad=2,
+            videoElement,
+            videoDiv,
+            buttonSheet;
+    function eventWindowLoaded() {
+        videoElement = document.createElement('video');
+        videoDiv = document.createElement('div');
+        document.body.appendChild(videoDiv);
+        videoDiv.appendChild(videoElement);
+        videoDiv.setAttribute('style','display:none;');
+        var videoType = supportedVideoFormat(videoElement);
+        if (videoType==''){
+            alert('no video supported');
+            return;
+        }
+        videoElement.setAttribute('src','src/muirbeach.'+videoType);
+        videoElement.addEventListener('canplay',itemLoaded,false);
+        buttonSheet = new Image;
+        buttonSheet.onload=itemLoaded;
+        buttonSheet.src='src/videobuttons.png';
+    }
+    function itemLoaded() {
+        loadCount++;
+        if (loadCount>=itemsToLoad){
+            canvasApp();
+        }
+    }
+    function canvasApp() {
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var bw=32,bh=32,playX=190,playY=300,pauseX=230,pauseY=300,stopX=270,stopY=300;
+        canvas.addEventListener('mouseup',eventMouseUp,false);
+        setInterval(drawScreen,33);
+
+        function eventMouseUp(e) {
+            var mouseX,mouseY;
+            if(e.layerX||e.layerX==0){
+                mouseX = e.layerX;
+                mouseY = e.layerY;
+            }else if(e.offsetX||e.offsetY==0){
+                mouseX = e.offsetX;
+                mouseY = e.offsetY;
+            }
+
+            //单击播放按钮
+            if((mouseY>=playY)&&(mouseY<=playY+bh)&&(mouseX>=playX)&&(mouseX<=playX+bw)){
+                if(videoElement.paused){
+                    videoElement.play();
+                }
+            }
+
+            //单击停止按钮
+            if((mouseY>=stopY)&&(mouseY<=stopY+bh)&&(mouseX>=stopX)&&(mouseX<=stopX+bw)){
+                videoElement.pause();
+                videoElement.currentTime=0;
+                context.drawImage(buttonSheet, 64, 32, bw, bh, stopX, stopY, bw, bh);
+            }
+
+            //单击暂停按钮
+            if((mouseY>=pauseY)&&(mouseY<=pauseY+bh)&&(mouseX>=pauseX)&&(mouseX<=pauseX+bw)){
+                if(videoElement.paused==false){
+                    videoElement.pause();
+                }else{
+                    videoElement.play();
+                }
+            }
+        }
+        function drawScreen() {
+            //背景
+            context.fillStyle='#ffffaa';
+            context.fillRect(0,0,canvas.width,canvas.height);
+            //边框
+            context.strokeStyle='black';
+            context.strokeRect(5,5,canvas.width-10,canvas.height-10);
+            //视频
+            context.drawImage(videoElement,85,30);
+            
+            //绘制按钮
+            //播放
+            if(!videoElement.paused){
+                context.drawImage(buttonSheet,0,32,bw,bh,playX,playY,bw,bh);//选中播放按钮
+            }else{
+                context.drawImage(buttonSheet,0,0,bw,bh,playX,playY,bw,bh);//未选中
+            }
+            
+            //暂停
+            if (videoElement.paused){
+                context.drawImage(buttonSheet,32,32,bw,bh,pauseX,pauseY,bw,bh);//选中暂停按钮
+            }else{
+                context.drawImage(buttonSheet,32,0,bw,bh,pauseX,pauseY,bw,bh);
+            }
+            context.drawImage(buttonSheet, 64, 0, bw, bh, stopX, stopY, bw, bh);
+        }
+
+    }
+    function supportedVideoFormat(video) {
+        var returnExt = '';
+        if(video.canPlayType('video/webm')=='probably'||
+            video.canPlayType('video/webm')=='maybe'){
+            returnExt='webm';
+        }else if(video.canPlayType('video/mp4')=='probably'||
+            video.canPlayType('video/mp4')=='maybe'){
+            returnExt='mp4';
+        }else if (video.canPlayType('video/ogg')=='probably'||
+            video.canPlayType('video/ogg')=='maybe'){
+            returnExt='ogg';
+        }
+        return returnExt;
+    }
+</script>
+<body>
+<div align="center">
+    <canvas width="500" height="350" id="canvas"></canvas><br>
+</div>
+</body>
+</html>

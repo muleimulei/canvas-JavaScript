@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    window.addEventListener('load',eventLoaded,false);
+    function eventLoaded() {
+        canvasApp();
+    }
+    function canvasApp() {
+        var canvas = document.getElementById('theCanvas'),
+            context = canvas.getContext('2d'),
+            len= 190,
+            h = 100,
+                m=140,
+                s=170;
+        function drawScreen() {
+            context.fillStyle="#eeffee";
+            context.fillRect(0,0,500,500);
+            context.strokeStyle='red';
+            context.strokeRect(5,5,canvas.width-10,canvas.height-10);
+            context.beginPath();
+
+            //画出钟表轮廓
+            var gr = context.createRadialGradient(canvas.width/2,canvas.height/2,198,canvas.width/2,canvas.height/2,202);
+            gr.addColorStop(0,'rgb(255,0,0)');
+            gr.addColorStop(.5,'rgb(0,255,0)');
+            gr.addColorStop(1,'rgb(255,0,0)');
+            context.lineWidth=7;
+            context.strokeStyle=gr;
+            context.arc(canvas.width/2,canvas.height/2,200,0,(Math.PI/180)*360,false);
+            context.stroke();
+            context.closePath();
+            //画出dian
+            context.beginPath();
+            context.fillStyle='white';
+            context.shadowOffsetX=1;
+            context.shadowOffsetY=1;
+            context.shadowBlur=4;
+            context.shadowColor='black';
+            context.arc(canvas.width/2,canvas.height/2,10,0,(Math.PI/180)*360);
+            context.stroke();
+            context.closePath();
+
+            var i=1,
+                radian=30;
+            //画出1,2,3,4,5........
+            for(;i<=12;i++){
+                context.beginPath();
+                context.shadowColor = 'gray';
+                context.shadowOffsetY=2;
+                context.shadowOffsetX=2;
+                context.shadowBlur=1;
+                context.fillStyle='blue';
+                if(i%3==0){
+                    context.fillStyle='black';
+                }
+                var x = canvas.width/2+Math.sin((Math.PI/180)*radian)*len;
+                var y = canvas.height/2-Math.cos((Math.PI/180)*radian)*len;
+                context.arc(x,y,5,0,(Math.PI/180)*360,false);
+                context.fill();
+                context.closePath();
+
+                context.fillStyle='black';
+                context.font="normal bolder 15px Courier New";
+                x = canvas.width/2+Math.sin((Math.PI/180)*radian)*(len-20);
+                y = canvas.height/2-Math.cos((Math.PI/180)*radian)*(len-20);
+                context.fillText(i+'',x,y);
+                radian=radian+30;
+            }
+            var d = new Date(),
+                    hour = d.getHours(),
+                    minute = d.getMinutes(),
+                    seconds = d.getSeconds();
+            //画出时针
+//            context.save();
+            var r1 = (hour%12)*30,
+                    rfX = canvas.width/2+Math.sin((Math.PI/180)*r1)*h,
+                    rfY = canvas.height/2-Math.cos((Math.PI/180)*r1)*h;
+//                    rx = canvas.width/2+Math.sin((Math.PI/180)*r1)*6,
+//                    ry = canvas.width/2-Math.sin((Math.PI/180)*r1)*6;
+            context.beginPath();
+            context.lineWidth=5;
+            context.strokeStyle='red';
+//            context.moveTo(canvas.width/2,canvas.height/2);
+            context.moveTo(canvas.width/2,canvas.height/2);
+            context.lineTo(rfX,rfY);
+            context.stroke();
+            context.closePath();
+
+            var m2 = (minute%60)*6,
+                    mfX = canvas.width/2+Math.sin((Math.PI/180)*m2)*m,
+                    mfY = canvas.height/2-Math.cos((Math.PI/180)*m2)*m;
+            context.beginPath();
+            context.lineWidth=3;
+            context.strokeStyle='blue';
+//            context.moveTo(canvas.width/2,canvas.height/2);
+            context.moveTo(canvas.width/2,canvas.height/2);
+            context.lineTo(mfX,mfY);
+            context.stroke();
+            context.closePath();
+
+            var s2 = (seconds%60)*6,
+                    sfX = canvas.width/2+Math.sin((Math.PI/180)*s2)*s,
+                    sfY = canvas.height/2-Math.cos((Math.PI/180)*s2)*s;
+            context.beginPath();
+            context.lineWidth=2;
+            context.strokeStyle='black';
+//            context.moveTo(canvas.width/2,canvas.height/2);
+            context.moveTo(canvas.width/2,canvas.height/2);
+            context.lineTo(sfX,sfY);
+            context.stroke();
+            context.closePath();
+
+            context.beginPath();
+            context.fillStyle='purple';
+            context.arc(canvas.width/2,canvas.height/2,5,0,(Math.PI/180)*360,false);
+            context.fill();
+            context.closePath();
+
+        }
+        setInterval(drawScreen,33);
+
+    }
+</script>
+<body>
+<div align="center">
+    <canvas width="500" height="500" id="theCanvas"></canvas>
+</div>
+</body>
+</html>

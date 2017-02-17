@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blaster Basic Game</title>
+</head>
+<script>
+    window.addEventListener('load',eventWindowLoaded,false);
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+    function canvasApp() {
+        var canvas = document.getElementById('canvas');
+        if(canvas||!canvas.getContext){
+            return;
+        }
+
+        var context = canvas.getContext('2d');
+        if(!context)
+        {
+            return;
+        }
+        //应用状态
+        const GAME_STATE_TITLE=0;
+        const GAME_STATE_NEW_GAME=1;
+        const GAME_STATE_NEW_LEVEL=2;
+        const GAME_STATE_PLAYER_START=3;
+        const GAME_STATE_PLAY_LEVEL=4;
+        const GAME_STATE_PLAYER_DIE=5;
+        const GAME_STATE_GAME_OVER=6;
+
+        var currentGameState=0;
+        var currentGameStateFunction = null;
+
+        //标题屏幕
+        var titleStarted = false;
+        //游戏结束屏幕
+        var gameOverStarted = false;
+
+        //游戏对象
+        //游戏环境
+        var score = 0,
+            level=0,
+            extraShipAtEach=10000,
+            extraShipEarned=0,
+            playerShips=3;
+
+        //游戏区域
+        var xMin=0;
+        var xMax=400;
+        var yMin=0;
+        var yMax=400;
+
+        //分值
+        var bigRockScore=50;
+        var medRockScore = 75;
+        var smlRockScore= 100;
+        var saucerScore = 300;
+
+        //陨石大小常量
+        const ROCK_SCALE_LARGE=1;
+        const ROCK_SCALE_MEDIUM=2;
+        const ROCK_SCALE_SMALL=3;
+
+        //创建游戏对象和数组
+        var player={};
+        var rocks=[];
+        var saucers=[];
+        var playerMissile=[];
+        var particles=[];
+        var saucerMissiles=[];
+
+        //关卡难度
+        var levelRockMaxSpeedAdjust=1;
+        var levelSaucerMax=1;
+        var levelSaucerOccurrenceRate=25;
+        var levelSaucerSpeed=1;
+        var levelSaucerFireDelay=300;
+        var levelSaucerFireRate=30;
+        var levelSaucerMissileSpeed=1;
+
+        //按键数组
+        var keyPressList=[];
+
+        function runGame() {
+            currentGameStateFunction();
+        }
+
+        function switchGameState(newState) {
+            currentGameState = newState;
+            switch (currentGameState)
+            {
+                case GAME_STATE_TITLE:
+                    currentGameStateFunction = gameStateTitle;
+                    break;
+                case GAME_STATE_NEW_GAME:
+                    currentGameStateFunction = gameStateNewGame;
+                    break;
+                case GAME_STATE_NEW_LEVEL:
+                    currentGameStateFunction = gameStateNewLevel;
+                    break;
+                case GAME_STATE_PLAYER_START:
+                    currentGameStateFunction = gameStatePlayerStart;
+                    break;
+                case GAME_STATE_PLAY_LEVEL:
+                    currentGameStateFunction = gameStatePlayerLevel;
+                    break;
+                case GAME_STATE_PLAYER_DIE:
+                    currentGameStateFunction = gameStatePlayerDie;
+                    break;
+                case GAME_STATE_GAME_OVER:
+                    currentGameStateFunction = gameStateGameOver;
+                    break;
+            }
+        }
+
+        function fillBackground() {
+            //绘制背景和文字
+            context.fillStyle='black';
+            context.fillRect(xMin,yMin,xMax,yMax);
+        }
+        function setTextStyle() {
+            context.fillStyle='#ffffff';
+            context.font='15px _sans';
+            context.textBaseline='top';
+        }
+
+        function gameStateTitle() {
+            if(!titleStarted){
+                fillBackground();
+                setTextStyle();
+                context.fillText('Geo Blaster Basic',130,70);
+                context.fillText('Press Space To Play',120,140);
+                titleStarted=true;
+            }else{
+                //等待用户按下空格键
+                if(keyPressList[32]==true){
+                    console.log('space pressed');
+                    switchGameState(GAME_STATE_NEW_GAME);
+                    titleStarted=false;
+                }
+            }
+        }
+
+        function gameStateNewGame() {
+            console.log('gameStateNewGame');
+            //设置新游戏
+            level=0;
+            score=0;
+            playerShips=3;
+            player.maxVelocity=5;
+            player.width=20;
+            player.height=20;
+            player.halfWidth=10;
+            player.halfHeight=10;
+            player.rotationVelocity=5;//飞船每次旋转多少度
+            player.thrustAcceleration=.05;
+            player.missileFrameDelay=5;
+            player.thrust=false;
+
+            fillBackground();
+            renderScoreBoard();
+            switchGameState(GAME_STATE_NEW_LEVEL);
+        }
+
+
+
+    }
+
+
+
+</script>
+<body>
+<div align="center">
+    <canvas width="400" height="400" id="canvas"></canvas>
+</div>
+</body>
+</html>
